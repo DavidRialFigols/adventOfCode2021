@@ -13,7 +13,6 @@ def process_data_1(data):
 
 def process_data_2(data):
     last = sum(data[:3])
-    print(len(data[:3]))
     counter = 0
     for i in range(1, len(data)-2):
         new = sum(data[i:i+3])
@@ -27,6 +26,6 @@ if __name__ == "__main__":
     data = read_file(day)
     print(data)
     result_1 = process_data_1(data)
-    print(result_1)
+    print(f"result 1: {result_1}")
     result_2 = process_data_2(data)
-    print(result_2)
+    print(f"result 2:{result_2}")
