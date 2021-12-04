@@ -48,4 +48,4 @@ if __name__ == "__main__":
     result_1 = process_data_1(data)
     print(f"result 1: {result_1}")
     result_2 = process_data_2(data)
-    print(f"result 2:{result_2}")
+    print(f"result 2: {result_2}")
