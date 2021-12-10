@@ -1,7 +1,7 @@
 Advent of Code 2021
 ============
 
-My solutions to [Advent of Code](https://adventofcode.com/) 2021.
+My solutions to [Advent of Code 2021](https://adventofcode.com/2021).
 
 ## See also
 - [Sara Bardají](https://github.com/sarabase/advent-of-code-2021)
