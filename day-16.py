@@ -95,20 +95,11 @@ def get_versions_2(packet):
         elif packet_id == 3:
             value_packet = max(values_subpackets)
         elif packet_id == 5:
-            if values_subpackets[0] > values_subpackets[1]:
-                value_packet = 1
-            else:
-                value_packet = 0
+            value_packet = int(values_subpackets[0] > values_subpackets[1])
         elif packet_id == 6:
-            if values_subpackets[0] < values_subpackets[1]:
-                value_packet = 1
-            else:
-                value_packet = 0
+            value_packet = int(values_subpackets[0] < values_subpackets[1])
         elif packet_id == 7:
-            if values_subpackets[0] == values_subpackets[1]:
-                value_packet = 1
-            else:
-                value_packet = 0
+            value_packet = int(values_subpackets[0] == values_subpackets[1])
 
     return versions, len_packet, value_packet
 
