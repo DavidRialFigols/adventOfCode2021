@@ -48,74 +48,109 @@ def split(number):
     if number%2 == 0: return [int(number/2), int(number/2)]
     else: return [int((number-1)/2), int((number+1)/2)]
 
-def recursive(pair, depth, sum_left, sum_right):
-    print(f"ENTRADA | pair: {pair} | sum_left: {sum_left} | sum_right: {sum_right}")
-    check_again = True
-    second_pass = False
-    while check_again:
-        check_again = False
-        if depth == 5:
-            print(f"EXPLODE | pair: {pair} | sum_left: {pair[0]} | sum_right: {pair[1]}")
-            return 0, pair[0],pair[1]
-        if type(pair[0]) == list:
-            result = recursive(pair[0], depth+1, False, sum_left)
-            pair[0], sum_left, sum_right = result[0], result[1], result[2]
-            if type(pair[1]) == int and sum_right:
-                pair[1] += sum_right
-                sum_right = False
-        else:
-            if sum_left:
-                pair[0] += sum_left
-                sum_left = False
-            if second_pass and sum_min_left:
-                pair[0] += sum_min_left
-                sum_left = False
-            if pair[0] >= 10:
-                print(f"SPLIT | pair: {pair} | sum_left: {sum_left} | sum_right: {sum_right}")
-                pair[0] = split(pair[0])
-                result = recursive(pair[0], depth+1, False, sum_left)
-                pair[0], sum_left, sum_right = result[0], result[1], result[2]
-                if type(pair[1]) == int and sum_right:
-                    pair[1] += sum_right
-                    sum_right = False
+def add_sum(pair, value, side):
+    if type(pair[side]) == int:
+        pair[side] += value
+    else:
+        pair[side] = add_sum(pair[side], value, side)
+    return pair
 
-        if type(pair[1]) == list:
-            result = recursive(pair[1], depth+1, sum_right, False)
-            pair[1], sum_left, sum_right = result[0], result[1], result[2]
-            if type(pair[0]) == int and sum_left:
-                pair[0] += sum_left
-                sum_left = False
-                check_again = True
-        elif not second_pass:
-            if sum_right:
-                pair[1] += sum_right
-                sum_right = False
-            if pair[1] >= 10:
-                print(f"SPLIT | pair: {pair} | sum_left: {sum_left} | sum_right: {sum_right}")
-                pair[1] = split(pair[1])
-                result = recursive(pair[1], depth+1, sum_right, False)
-                pair[1], sum_min_left, sum_right = result[0], result[1], result[2]
-                if type(pair[0]) == int and sum_min_left:
-                    pair[0] += sum_min_left
-                    sum_min_left = False
-                    check_again = True
-                    second_pass = True
+def check_explode(pair, depth, sum_left, sum_right):
+    explode = False
+    # print(f"ENTRADA | depth: {depth} | pair: {pair} | sum_left: {sum_left} | sum_right: {sum_right} | explode: {explode}")
+    if depth == 5:
+        if sum_left: pair[0] += sum_left
+        if sum_right: pair[1] += sum_right
+        # print(f"EXPLODE | depth: {depth} | pair: {pair} | sum_left: {pair[0]} | sum_right: {pair[1]} | explode: {explode}")
+        return 0, pair[0],pair[1], True
+    if type(pair[0]) == list:
+        result = check_explode(pair[0], depth+1, False, sum_left)
+        pair[0], sum_left, sum_inner_right, explode = result[0], result[1], result[2], result[3]
+        if type(pair[1]) == int and sum_inner_right:
+            pair[1] += sum_inner_right
+        elif sum_inner_right:
+            pair[1] = add_sum(pair[1], sum_inner_right, 0)
+    else:
+        if sum_left:
+            pair[0] += sum_left
+            sum_left = False
+    if type(pair[1]) == list:
+        result = check_explode(pair[1], depth+1, sum_right, False)
+        pair[1], sum_inner_left, sum_right, explode_right = result[0], result[1], result[2], result[3]
+        explode = explode or explode_right
+        if type(pair[0]) == int and sum_inner_left:
+            pair[0] += sum_inner_left
+        elif sum_inner_left:
+            pair[0] = add_sum(pair[0], sum_inner_left, 1)
+    else:
+        if sum_right:
+            pair[1] += sum_right
+            sum_right = False
+    # print(f"SORTIDA | depth: {depth} | pair: {pair} | sum_left: {sum_left} | sum_right: {sum_right} | explode: {explode}")
+    ended_check = depth==1 and explode==False
+    return pair, sum_left, sum_right, explode, ended_check
 
-    print(f"SORTIDA | pair: {pair} | sum_left: {sum_left} | sum_right: {sum_right}")
-    return pair, sum_left, sum_right
+def check_split(pair):
+    # print(f"ENTRADA | pair: {pair}")
+    has_split = False
+    if type(pair[0]) == list:
+        pair[0], has_split = check_split(pair[0])
+        if has_split:
+            # print(f"SORTIDA | pair: {pair} | has_split: {has_split}")
+            return pair, has_split
+    else:
+        if pair[0] >= 10:
+            # print(f"SPLIT | pair: {pair}")
+            pair[0] = split(pair[0])
+            has_split = True
+            # print(f"SORTIDA | pair: {pair} | has_split: {has_split}")
+            return pair, has_split
+
+    if type(pair[1]) == list:
+        pair[1], has_split_right = check_split(pair[1])
+        has_split = has_split or has_split_right
+    else:
+        if pair[1] >= 10:
+            # print(f"SPLIT | pair: {pair}")
+            pair[1] = split(pair[1])
+            has_split = True
+
+    # print(f"SORTIDA | pair: {pair} | has_split: {has_split}")
+    return pair, has_split
+
+
+def recursive(pair):
+    continuar = True
+    while continuar:
+        ended_check = False
+        explode = False
+        while not ended_check:
+            pair, sum_left, sum_right, explode_aux, ended_check = check_explode(pair, 1, False, False)
+            ended_check = ended_check and not explode_aux
+            explode = explode or explode_aux
+        pair, has_split = check_split(pair)
+        continuar = has_split
+    return pair
 
 
 def process_data_1(data):
-    suma = [data[0]]
+    suma = data[0]
     for i in range(1, len(data)):
+        suma = [suma]
         suma.append(data[i])
-        print(f'SUMA: {suma}')
-        suma, sum_left, sum_right = recursive(suma, 1, False, False)
-    print(suma)
+        suma = recursive(suma)
     return calc_magnitude(suma)
 
 def process_data_2(data):
-    return
+    max_mag = 0
+    for i in data:
+        for j in data:
+            if i!=j:
+                mag = calc_magnitude(recursive([copy.deepcopy(i), copy.deepcopy(j)]))
+                if mag > max_mag:
+                    print(f"i: {i} | j: {j} | magnitude: {mag}")
+                    max_mag = mag
+    return max_mag
 
 
 if __name__ == "__main__":
