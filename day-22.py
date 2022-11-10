@@ -38,15 +38,22 @@ def calculate_interjection(actual_blocks, new_block):
         if has_interjection:
             interjection = []
             for coord in range(3):
-                interjection[coord] = [max(block[coord][0], new_block[coord][0]), min(block[coord][1], new_block[coord][1])]
+                interjection.append([max(block[coord][0], new_block[coord][0]), min(block[coord][1], new_block[coord][1])])
             interjections.append(interjection)
-
-    print(interjections)
+    print()
+    print(f'Interjections: {interjections}')
+    print(f'Actual blocks: {actual_blocks}')
+    print(f'New Block: {new_block}')
 
     return interjections
     
+def remove_interjection(block, interjection):
+    return block
 
-def add_block(actual_blocks, new_block, interjection):
+def add_block(actual_blocks, new_block, interjections):
+    # delete interjections from new_block
+    for interjection in interjections:
+
     # add new_block without interjections
     actual_blocks.append(new_block)
 
@@ -66,7 +73,7 @@ def process_data_2(data):
         action = instruction[0]
         new_block = instruction[1]
         interjections = calculate_interjection(actual_blocks, new_block)
-        if i==1:
+        if i==2:
             print()
             print()
             print(interjections)
@@ -74,8 +81,7 @@ def process_data_2(data):
             print(new_block)
             break
         if action:
-            for interjection in interjections:
-                add_block(actual_blocks, new_block, interjection)
+            add_block(actual_blocks, new_block, interjections)
         else:
             for interjection in interjections:
                 remove_block(actual_blocks, interjection)
