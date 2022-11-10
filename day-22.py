@@ -53,6 +53,7 @@ def remove_interjection(block, interjection):
 def add_block(actual_blocks, new_block, interjections):
     # delete interjections from new_block
     for interjection in interjections:
+        new_block = remove_interjection(new_block, interjection)
 
     # add new_block without interjections
     actual_blocks.append(new_block)
