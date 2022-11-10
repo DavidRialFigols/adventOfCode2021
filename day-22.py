@@ -23,7 +23,64 @@ def process_data_1(data):
         cube[x_coords[0]+move_center:x_coords[1]+1+move_center, y_coords[0]+move_center:y_coords[1]+1+move_center, z_coords[0]+move_center:z_coords[1]+1+move_center] = instruction[0]
     return np.sum(cube)
 
+def calculate_interjection(actual_blocks, new_block):
+    """
+        1st: calculate interjection
+        2nd: if the new instruction is ON, sum to the previous blocks the new blocks minus interjection
+        3rd: if the new instruction is OFF, rest to the previous blocks the interjection
+    """
+    interjections = []
+    for block in actual_blocks:
+        for coord in range(3):
+            has_interjection = ((block[coord][0]<=new_block[coord][0] and new_block[coord][0]<=block[coord][1]) or (new_block[coord][0]<=block[coord][0] and block[coord][0]<=new_block[coord][1]))
+            if not has_interjection:
+                break
+        if has_interjection:
+            interjection = []
+            for coord in range(3):
+                interjection[coord] = [max(block[coord][0], new_block[coord][0]), min(block[coord][1], new_block[coord][1])]
+            interjections.append(interjection)
+
+    print(interjections)
+
+    return interjections
+    
+
+def add_block(actual_blocks, new_block, interjection):
+    # add new_block without interjections
+    actual_blocks.append(new_block)
+
+    # simplify actual blocks
+
+    return actual_blocks
+
+def remove_block(actual_blocks, interjection):
+    return actual_blocks
+
+def calculate_blocks(actual_blocks):
+    return 26
+
 def process_data_2(data):
+    actual_blocks = []
+    for i, instruction in enumerate(data):
+        action = instruction[0]
+        new_block = instruction[1]
+        interjections = calculate_interjection(actual_blocks, new_block)
+        if i==1:
+            print()
+            print()
+            print(interjections)
+            print(actual_blocks)
+            print(new_block)
+            break
+        if action:
+            for interjection in interjections:
+                add_block(actual_blocks, new_block, interjection)
+        else:
+            for interjection in interjections:
+                remove_block(actual_blocks, interjection)
+
+    return calculate_blocks(actual_blocks)
     
 
 
