@@ -23,14 +23,11 @@ def process_data_1(data):
         cube[x_coords[0]+move_center:x_coords[1]+1+move_center, y_coords[0]+move_center:y_coords[1]+1+move_center, z_coords[0]+move_center:z_coords[1]+1+move_center] = instruction[0]
     return np.sum(cube)
 
-def calculate_interjection(actual_blocks, new_block):
-    """
-        1st: calculate interjection
-        2nd: if the new instruction is ON, sum to the previous blocks the new blocks minus interjection
-        3rd: if the new instruction is OFF, rest to the previous blocks the interjection
-    """
+def calculate_interjections(actual_instructions, new_instruction):
     interjections = []
-    for block in actual_blocks:
+    new_block = new_instruction[1]
+    for instruction in actual_instructions:
+        block = instruction[1]
         for coord in range(3):
             has_interjection = ((block[coord][0]<=new_block[coord][0] and new_block[coord][0]<=block[coord][1]) or (new_block[coord][0]<=block[coord][0] and block[coord][0]<=new_block[coord][1]))
             if not has_interjection:
@@ -39,51 +36,35 @@ def calculate_interjection(actual_blocks, new_block):
             interjection = []
             for coord in range(3):
                 interjection.append([max(block[coord][0], new_block[coord][0]), min(block[coord][1], new_block[coord][1])])
+            # if the instruction in actual_instruction was added, then subtract the interjection.
+            # If the instruction in actual_instruction was subtracted, then it means there was a larger one that was added (cause there is no new block added if it is OFF).
+            # So, when the instruction in actual_instruction is subtracted, the interjection has to be added.
+            interjection = [not instruction[0], interjection]
             interjections.append(interjection)
-    print()
-    print(f'Interjections: {interjections}')
-    print(f'Actual blocks: {actual_blocks}')
-    print(f'New Block: {new_block}')
-
     return interjections
-    
-def remove_interjection(blocks, interjection):
-    return blocks
 
-def add_block(actual_blocks, new_block, interjections):
-    # simplify new_block
-    new_blocks = []
-    
-    
-    actual_blocks.append(new_block)
-    return actual_blocks
-
-def remove_block(actual_blocks, interjection):
-    return actual_blocks
-
-def calculate_blocks(actual_blocks):
-    return 26
+def calculate_blocks(actual_instructions):
+    num_blocks = 0
+    for i in actual_instructions:
+        b = i[1]
+        if i[0]:
+            num_blocks += (b[0][1]-b[0][0]+1) * ((b[1][1]-b[1][0]+1)) * ((b[2][1]-b[2][0]+1))
+        else:
+            num_blocks -= (b[0][1]-b[0][0]+1) * ((b[1][1]-b[1][0]+1)) * ((b[2][1]-b[2][0]+1))
+    return num_blocks
 
 def process_data_2(data):
-    actual_blocks = []
-    for i, instruction in enumerate(data):
+    actual_instructions = []
+    for instruction in data:
         action = instruction[0]
-        new_block = instruction[1]
-        interjections = calculate_interjection(actual_blocks, new_block)
-        if i==2:
-            print()
-            print()
-            print(interjections)
-            print(actual_blocks)
-            print(new_block)
-            break
+        interjections = calculate_interjections(actual_instructions, instruction)
         if action:
-            add_block(actual_blocks, new_block, interjections)
-        else:
-            for interjection in interjections:
-                remove_block(actual_blocks, interjection)
+            actual_instructions.append(instruction)
+        if len(interjections) > 0:
+            for i in interjections:
+                actual_instructions.append(i)
 
-    return calculate_blocks(actual_blocks)
+    return calculate_blocks(actual_instructions)
     
 
 
