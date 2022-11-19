@@ -1,7 +1,7 @@
 import copy
 
 def read_file(day):
-    letter_conversion = {'A':0, 'B':1, 'C':2, 'D':3}
+    letter_conversion = {'A':0, 'B':2, 'C':4, 'D':6}
     with open(f"data/day-{day}.txt", 'rt') as fin:
         data = fin.read().rstrip().split("\n")[2:4]
         print(data)
@@ -15,26 +15,21 @@ def read_file(day):
 def obtain_possible_moves(positions):
     # positions = {(position x, position y): letter, ...}
     # returns a list of possible moves
-    # One move is represented like ((xo, yo), (xf, yf)) where (xo, yo) is the initial position and (xf, yf) is the final position
+    # One move is represented like ((xo, yo), n) where n means:
+    # 0: move up
+    # 1: move right
+    # 2: move down
+    # 3: move right
     pm = []
     for pos in positions.keys():
-        if pos[1] == 2: # it means that the letter is at the bottom of the room
-            if (pos[0], 1) in positions: # it has a letter above, so this letter can not move
-                continue
-            if positions[pos] == pos[0]: # the letter is in the correct room
-                continue
-            
-            if (pos[0]-1, 0) not in positions:
-                pm.append((pos, (pos[0]-1,0)))
-            if (pos[0]+1, 0) not in positions:
-                pm.append((pos, (pos[0]+1,0)))
-            
-        elif pos[1] == 1: # it means it has a letter under it
-            
-
-
-    
-
+        if pos[1]==0 and positions[pos]==pos[0]: # the letter is in the bottom of the correct room
+            continue
+        if pos[1]==1 and positions[pos]==pos[0] and (pos[0],0) in positions and positions[(pos[0],0)]==pos[0]: # the room is completed
+            continue
+        if (pos[0]+1,pos[1]) not in positions and :
+        if (pos[0],pos[1]+1) not in positions:
+        if (pos[0]-1,pos[1]) not in positions:
+        if (pos[0],pos[1]-1) not in positions:
     return pm
 
 def process_data_1(data):
