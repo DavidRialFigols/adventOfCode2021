@@ -1,126 +1,81 @@
-import copy
 
-def read_file(day):
-    letter_conversion = {'A':0, 'B':2, 'C':4, 'D':6}
-    with open(f"data/day-{day}.txt", 'rt') as fin:
-        aux = fin.read().rstrip().split("\n")[2:4]
-        aux.append([letter_conversion[aux[0][3]], letter_conversion[aux[1][3]]])
-        aux.append([letter_conversion[aux[0][5]], letter_conversion[aux[1][5]]])
-        aux.append([letter_conversion[aux[0][7]], letter_conversion[aux[1][7]]])
-        aux.append([letter_conversion[aux[0][9]], letter_conversion[aux[1][9]]])
-        aux = aux[2:]
-        data = 
+# Done by: https://github.com/Gravitar64/Advent-of-Code-2021/blob/main/Tag_23.py
 
-    return data
-
-def obtain_state_from_positions(positions):
-    # a state is: (A1,A2,B1,B2,C1,C2,D1,D2) and each letter is (x,y)
-    aux = []
-    for pos in positions.keys():
-        aux.append([positions[pos],pos])
-    aux = sorted(aux, key=lambda x: x[0]+x[1][1])
-    state = tuple([i[1] for i in aux])
-    return state
-
-states = {}
-
-def obtain_possible_moves(state, actual_cost):
-    # state = (A1,A2,B1,B2,C1,C2) where each letter is (x,y)
-    # returns a list of possible next states with its cost
-    ns = []
-    
-    if actual_cost > states[state]: return ns
-
-    state = list(state)
-    for i, pos in enumerate(state):
-        letter = int(i/2)*2
-        if pos[1]==0 and letter==pos[0]: # the letter is in the bottom of the correct room
-            continue
-        if pos[1]==1 and letter==pos[0] and (pos[0],0) in state: # the room has another letter
-            if int(state.index((pos[0],0))/2)*2==letter: # the letter that is in the room is also good
-                continue
-        if pos[0]< 8 and pos[0] not in [0,2,4,6] and (pos[0]+1,pos[1]) not in state: # it can go right
-            # if it is its correct room, it will move down if possible, if not it will not move
-            # if it is not its correct room, it will continue moving right until it finds its room
-            extra_cost = energy_consumption[letter]
-            moving = letter>pos[0]
-            moves_right = 1
-            while (moving):
-                if moves_right > 10: raise Exception("To many moves to the right!") # just to be sure there is no problem here
-                if letter==pos[0]+moves_right: # it is its correct room
-                    moving = False
-                    if (pos[0]+moves_right, pos[1]-1) not in state: # there are empty spaces in the room
-                        if (pos[0]+moves_right, pos[1]-2) not in state: # there are no letters in the room
-                            fs = [state[j] if i!=j else (pos[0]+moves_right, 0) for j in range(len(state))]
-                            if (fs not in states) or (states[fs]>actual_cost+extra_cost):
-                                ns.append((fs, actual_cost+extra_cost+2*energy_consumption[letter]))
-                        elif (int(state.index((pos[0]+moves_right,0))/2)*2==letter): # there is one more letter in the bottom of the room and it is a correct one
-                            fs = [state[j] if i!=j else (pos[0]+moves_right, 1) for j in range(len(state))]
-                            ns.append((fs, actual_cost+extra_cost+energy_consumption[letter]))
-                else:
-                    moves_right+=1
-                    extra_cost += energy_consumption[letter]
-
-        if ((pos[1] == 1) or (pos[1]==0 and (pos[0],1) not in state)) and (pos[0],2) not in state: # it can go up
-            for j in [-1,1]: # moves up and side
-                extra_cost = energy_consumption[letter]*(2-pos[1])
-                movements = 1
-                while ((pos[0]+j*movements >= -2) and (pos[0]+j*movements <= 8) and ((pos[0]+j*movements, 2) not in state)): # just to be sure the movement is inside the limits
-                    if letter==pos[0]+j*movements: # it is its correct room, check if it can go down
-                        if (pos[0]+j*movements, 1) not in state: # there are empty spaces in the room
-                            if (pos[0]+j*movements, pos[1]-2) not in state: # there are no letters in the room
-                                fs = [state[j] if i!=j else (pos[0]+j*movements, 0) for j in range(len(state))]
-                                if (fs not in states) or (states[fs]>actual_cost+extra_cost):
-                                    ns.append((fs, actual_cost+extra_cost+2*energy_consumption[letter]))
-                                    break
-                            elif (int(state.index((pos[0]+j*movements,0))/2)*2==letter): # there is one more letter in the bottom of the room and it is a correct one
-                                fs = [state[j] if i!=j else (pos[0]+j*movements, 1) for j in range(len(state))]
-                                ns.append((fs, actual_cost+extra_cost+energy_consumption[letter]))
-                                break
-                    elif pos[0]+j*movements not in [0,2,4,6]:
-                        fs = [state[j] if i!=j else (pos[0]+j*movements, 2) for j in range(len(state))]
-                        ns.append((fs, actual_cost+extra_cost))
-
-                    movements+=1
-                    extra_cost += energy_consumption[letter]
+from time import perf_counter as pfc
+from heapq import heappop, heappush
 
 
-        if pos[0]>-2 and pos[0] not in [0,2,4,6] and (pos[0]-1,pos[1]) not in state: # it can go left
-            # if it is its correct room, it will move down if possible, if not it will not move
-            # if it is not its correct room, it will continue moving right until it finds its room
-            extra_cost = energy_consumption[letter]
-            moving = letter<pos[0]
-            moves_left = 1
-            while (moving):
-                if moves_left > 10: raise Exception("To many moves to the right!") # just to be sure there is no problem here
-                if letter==pos[0]-moves_left: # it is its correct room
-                    moving = False
-                    if (pos[0]-moves_left, pos[1]-1) not in state: # there are empty spaces in the room
-                        if (pos[0]-moves_left, pos[1]-2) not in state: # there are no letters in the room
-                            fs = [state[j] if i!=j else (pos[0]-moves_left, pos[1]-2) for j in range(len(state))]
-                            if (fs not in states) or (states[fs]>actual_cost+extra_cost):
-                                ns.append((fs, actual_cost+extra_cost+2*energy_consumption[letter]))
-                        elif (int(state.index((pos[0]-moves_left,0))/2)*2==letter): # there is one more letter in the bottom of the room and it is a correct one
-                            ns.append((fs, actual_cost+extra_cost+energy_consumption[letter]))
-                else:
-                    moves_left+=1
-                    extra_cost += energy_consumption[letter]
-    return ns
+def read_puzzle(filename):
+  with open(filename) as f:
+    return ''.join([c for c in f.read() if c in 'ABCD.'])
 
-def process_data_1(data):
 
-    return
+def can_leave_room(puzzle, room_pos):
+  for a in room_pos:
+    if puzzle[a] == '.': continue
+    return a
 
-def process_data_2(data):
-    return
 
-energy_consumption = {0:1, 1:10, 2:100, 3:1000}
+def blocked(a,b,puzzle):
+  step = 1 if a<b else -1
+  for pos in range(a+step, b+step, step):
+    if puzzle[pos] != '.': return True    
 
-if __name__ == "__main__":
-    day = "23"
-    data = read_file(day)
-    print(data)
-    result_1 = process_data_1(copy.deepcopy(data))
-    print(f"result 1: {result_1}")
-    result_2 = process_data_2(data)
-    print(f"result 2: {result_2}")
+
+def get_possible_parc_pos(a,parc,puzzle):
+  for b in [pos for pos in parc if puzzle[pos] == '.']:
+    if blocked(a,b,puzzle): continue
+    yield b
+
+
+def move(a,b,puzzle):
+  p = list(puzzle)
+  p[a], p[b] = p[b], p[a]
+  return ''.join(p)
+
+
+def can_enter_room(a,b,amphi,puzzle,room_pos):
+  for pos in room_pos:
+    if puzzle[pos] == '.': best_pos = pos
+    elif puzzle[pos] != amphi: return False
+  if not blocked(a,b,puzzle): return best_pos
+
+
+def possible_moves(puzzle, parc, stepout, target):
+  for a in [pos for pos in parc if puzzle[pos] != '.']:
+    amphi = puzzle[a]
+    if (b:=can_enter_room(a, stepout[amphi], amphi, puzzle, target[amphi])):
+      yield a,b
+  for room in 'ABCD':
+    if not (a:=can_leave_room(puzzle, target[room])): continue
+    for b in get_possible_parc_pos(stepout[room], parc, puzzle):
+      yield a,b
+
+
+def solve(puzzle):
+  energy = dict(A=1, B=10, C=100, D=1000)
+  parc= [0,1,3,5,7,9,10]
+  stepout = dict(A=2, B=4, C=6, D=8)
+  target = {r: range(ord(r)-54,len(puzzle),4) for r in 'ABCD'}
+  targetI = {v:key for key,val in target.items() for v in val}
+
+  solution = '.'*11+'ABCD'*((len(puzzle)-11)//4)
+  heap, seen = [(0,puzzle)], {puzzle:0}
+  while heap:
+    cost, state = heappop(heap)
+    if state == solution: return cost
+    for a,b in possible_moves(state, parc, stepout, target):
+      p,r = (a,b) if a < b else (b,a)
+      distance = abs(stepout[targetI[r]] - p) + (r-7)//4
+      new_cost = cost + distance * energy[state[a]]
+      moved = move(a,b,state)
+      if seen.get(moved,999999) <= new_cost: continue
+      seen[moved] = new_cost
+      heappush(heap,(new_cost, moved))
+  
+
+  
+start = pfc()
+print(solve(read_puzzle("data/day-23a.txt")))
+print(solve(read_puzzle("data/day-23b.txt")))
+print(pfc()-start)
